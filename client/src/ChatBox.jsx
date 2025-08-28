@@ -6,10 +6,8 @@ export default function ChatBox() {
   const [pending, setPending] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Use localhost in dev, relative path in prod
-  const API_BASE =
-    (import.meta && import.meta.env && import.meta.env.VITE_API_BASE) ||
-    (window.location.hostname === "localhost" ? "http://localhost:5000" : "");
+  // Use localhost in dev, relative path in production
+  const API_BASE = window.location.hostname === "localhost" ? "http://localhost:5000" : "";
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -18,12 +16,12 @@ export default function ChatBox() {
     const userMessage = { text, sender: "user" };
     const loadingMessage = { text: "Typing...", sender: "bot", loading: true };
 
-    // Add both at once to avoid flicker/race
+    // Add both at once
     setMessages((prev) => [...prev, userMessage, loadingMessage]);
     setInput("");
     setPending(true);
 
-    // Add a timeout (30s) so it never hangs forever
+    // Timeout to avoid hanging
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -37,7 +35,6 @@ export default function ChatBox() {
       clearTimeout(timeoutId);
 
       if (!res.ok) {
-        // Try to read server error if provided
         let errMsg = "Server error";
         try {
           const errData = await res.json();
